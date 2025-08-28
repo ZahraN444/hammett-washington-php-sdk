@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace APIMATICCalculatorLib;
 
+use APIMATICCalculatorLib\Proxy\ProxyConfigurationBuilder;
 use CoreInterfaces\Http\HttpConfigurations;
 
 /**
@@ -21,6 +22,11 @@ interface ConfigurationInterface extends HttpConfigurations
      * Get current API environment
      */
     public function getEnvironment(): string;
+
+    /**
+     * Represents the proxy configurations for API calls.
+     */
+    public function getProxyConfigurationBuilder(): ProxyConfigurationBuilder;
 
     /**
      * Get the base uri for a given server in the current environment.

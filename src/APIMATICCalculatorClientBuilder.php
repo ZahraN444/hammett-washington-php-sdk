@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace APIMATICCalculatorLib;
 
+use APIMATICCalculatorLib\Proxy\ProxyConfigurationBuilder;
 use Core\Types\Sdk\CoreCallback;
 use Core\Utils\CoreHelper;
 
@@ -113,6 +114,12 @@ class APIMATICCalculatorClientBuilder
             return $this;
         }
         $this->config['httpCallback'] = $httpCallback;
+        return $this;
+    }
+
+    public function proxyConfiguration(ProxyConfigurationBuilder $proxyConfiguration): self
+    {
+        $this->config['proxyConfiguration'] = $proxyConfiguration->getConfiguration();
         return $this;
     }
 

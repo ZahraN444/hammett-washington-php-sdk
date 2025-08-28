@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace APIMATICCalculatorLib;
 
 use APIMATICCalculatorLib\Controllers\SimpleCalculatorController;
+use APIMATICCalculatorLib\Proxy\ProxyConfigurationBuilder;
 use APIMATICCalculatorLib\Utils\CompatibilityConverter;
 use Core\ClientBuilder;
 use Core\Utils\CoreHelper;
@@ -20,6 +21,8 @@ use Unirest\HttpClient;
 class APIMATICCalculatorClient implements ConfigurationInterface
 {
     private $simpleCalculator;
+
+    private $proxyConfiguration;
 
     private $config;
 
@@ -34,7 +37,10 @@ class APIMATICCalculatorClient implements ConfigurationInterface
     public function __construct(array $config = [])
     {
         $this->config = array_merge(ConfigurationDefaults::_ALL, CoreHelper::clone($config));
-        $this->client = ClientBuilder::init(new HttpClient(Configuration::init($this)))
+        $this->proxyConfiguration = $this->config['proxyConfiguration'] ?? ConfigurationDefaults::PROXY_CONFIGURATION;
+        $this->client = ClientBuilder::init(
+            new HttpClient(Configuration::init($this)->proxyConfiguration($this->proxyConfiguration))
+        )
             ->converter(new CompatibilityConverter())
             ->jsonHelper(ApiHelper::getJsonHelper())
             ->apiCallback($this->config['httpCallback'] ?? null)
@@ -61,7 +67,8 @@ class APIMATICCalculatorClient implements ConfigurationInterface
             ->httpStatusCodesToRetry($this->getHttpStatusCodesToRetry())
             ->httpMethodsToRetry($this->getHttpMethodsToRetry())
             ->environment($this->getEnvironment())
-            ->httpCallback($this->config['httpCallback'] ?? null);
+            ->httpCallback($this->config['httpCallback'] ?? null)
+            ->proxyConfiguration($this->getProxyConfigurationBuilder());
     }
 
     public function getTimeout(): int
@@ -112,6 +119,18 @@ class APIMATICCalculatorClient implements ConfigurationInterface
     public function getEnvironment(): string
     {
         return $this->config['environment'] ?? ConfigurationDefaults::ENVIRONMENT;
+    }
+
+    /**
+     * Get the proxy configuration builder
+     */
+    public function getProxyConfigurationBuilder(): ProxyConfigurationBuilder
+    {
+        return ProxyConfigurationBuilder::init($this->proxyConfiguration['address'])
+            ->port($this->proxyConfiguration['port'])
+            ->tunnel($this->proxyConfiguration['tunnel'])
+            ->auth($this->proxyConfiguration['auth']['user'], $this->proxyConfiguration['auth']['pass'])
+            ->authMethod($this->proxyConfiguration['auth']['method']);
     }
 
     /**
